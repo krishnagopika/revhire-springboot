@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.revature.revhire.controller.UserControllerTests
+-------------------------------------------------------------------------------
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.471 s - in com.revature.revhire.controller.UserControllerTests
