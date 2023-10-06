@@ -1,0 +1,78 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+
+  stages:
+  - name: Build
+    steps:
+      - name: Checkout
+        image: maven:3.8-jdk-11
+        commands:
+          - git clone <repository_url>
+          - cd <project_directory>
+      
+      - name: Build and Test
+        image: maven:3.8-jdk-11
+        commands:
+          - mvn clean package
+
+  - name: Deploy
+    steps:
+      - name: Copy Artifact to EC2
+        image: amazon/aws-cli:2.x
+        commands:
+          - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+          - aws configure set region $AWS_REGION
+          - aws s3 cp target/<your_project>.jar s3://<your-s3-bucket>/
+
+      - name: SSH into EC2 Instance
+        image: ubuntu:latest
+        commands:
+          - apt-get update
+          - apt-get install -y openssh-client
+          - ssh -i <your-ssh-key.pem> ec2-user@<your-ec2-instance-public-ip> <<EOF
+              # Stop the existing Spring Boot application (if any)
+              sudo systemctl stop <your-application-service>
+
+              # Download the latest JAR from S3
+              aws s3 cp s3://<your-s3-bucket>/<your_project>.jar /opt/<your_project>.jar
+
+              # Start the Spring Boot application
+              sudo systemctl start <your-application-service>
+              sudo systemctl status <your-application-service>
+            EOF
+
