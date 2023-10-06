@@ -39,13 +39,13 @@ jobs:
   - name: Build
     steps:
       - name: Checkout
-        image: maven:3.8-jdk-11
+        image: maven:3.8-jdk-17
         commands:
-          - git clone <repository_url>
-          - cd <project_directory>
+          - git clone https://github.com/krishnagopika/revhire-springboot.git
+          - cd revhire-springboot
       
       - name: Build and Test
-        image: maven:3.8-jdk-11
+        image: maven:3.8-jdk-17
         commands:
           - mvn clean package
 
@@ -57,19 +57,19 @@ jobs:
           - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
           - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           - aws configure set region $AWS_REGION
-          - aws s3 cp target/<your_project>.jar s3://<your-s3-bucket>/
+          - aws s3 cp target/<your_project>.jar s3://revhire/
 
       - name: SSH into EC2 Instance
         image: ubuntu:latest
         commands:
           - apt-get update
           - apt-get install -y openssh-client
-          - ssh -i <your-ssh-key.pem> ec2-user@<your-ec2-instance-public-ip> <<EOF
+          - ssh -i revhire.pem ec2-user@3.81.96.18 <<EOF
               # Stop the existing Spring Boot application (if any)
-              sudo systemctl stop <your-application-service>
+              sudo systemctl stop revhire-springboot
 
               # Download the latest JAR from S3
-              aws s3 cp s3://<your-s3-bucket>/<your_project>.jar /opt/<your_project>.jar
+              aws s3 cp s3://revhire/revhire.jar /opt/revhire.jar
 
               # Start the Spring Boot application
               sudo systemctl start <your-application-service>
